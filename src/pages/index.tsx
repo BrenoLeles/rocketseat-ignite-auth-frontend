@@ -2,6 +2,9 @@ import {FormEvent, useContext, useState} from "react";
 
 import {ContainerForm} from '../styles/home';
 import {AuthContext} from "../contexts/AuthContexts";
+import {GetServerSideProps} from "next";
+import {parseCookies} from "nookies";
+import {withSSRGuest} from "../utils/withSSRGuest";
 
 export default function Home() {
   
@@ -29,3 +32,9 @@ export default function Home() {
     </ContainerForm>
   )
 }
+
+export const getServerSideProps = withSSRGuest(async (ctx) => {
+  return {
+    props: {}
+  }
+});
