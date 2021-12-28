@@ -16,7 +16,8 @@ type Usuario = {
 }
 
 type AuthContestData = {
-	login(credenciais: LoginCredenciais): Promise<void>;
+	login: (credenciais: LoginCredenciais) => Promise<void>;
+	logout: () => void;
 	usuario: Usuario
 	seAutenticado
 }
@@ -25,16 +26,37 @@ type AuthProviderProps = {
 	children: ReactNode
 }
 
+let authChannel: BroadcastChannel;
+
 export function logout() {
 	destroyCookie(undefined, 'nextauth.token');
 	destroyCookie(undefined, 'nextauth.refreshToken');
+	
+	authChannel.postMessage('logout');
 	
 	Router.push('/')
 }
 
 export const AuthContext = createContext({} as AuthContestData);
 
+
 export function AuthProvider({children}: AuthProviderProps) {
+	
+	useEffect(() => {
+		authChannel = new BroadcastChannel('auth');
+		authChannel.onmessage = message => {
+			switch (message.data) {
+				case 'logout':
+					Router.push('/');
+					break;
+				// case 'login':
+				// 	Router.push('/dashboard')
+				// 	break;
+				default:
+					break;
+			}
+		}
+	}, [])
 	
 	useEffect(() => {
 		const { 'nextauth.token': token} = parseCookies();
@@ -81,14 +103,15 @@ export function AuthProvider({children}: AuthProviderProps) {
 			
 			api.defaults.headers['Authorization'] = `Bearer ${token}`;
 			
-			Router.push('/dashboard')
+			Router.push('/dashboard');
+			
 			
 		} catch (err) {
 			console.log(err)
 		}
 	}
 	return (
-		<AuthContext.Provider value={{login, seAutenticado, usuario}}>
+		<AuthContext.Provider value={{login, logout, seAutenticado, usuario}}>
 			{children}
 		</AuthContext.Provider>
 	)

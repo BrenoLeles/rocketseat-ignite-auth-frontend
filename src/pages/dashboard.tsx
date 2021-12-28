@@ -1,13 +1,19 @@
 import {useContext, useEffect} from "react";
 
-import { AuthContext } from "../contexts/AuthContexts";
+import { AuthContext, logout } from "../contexts/AuthContexts";
 import { setupAPIClient } from '../services/api';
 import { api } from '../services/apiClient';
 import {withSSRAuth} from "../utils/withSSRAuth";
+import {useCan} from "../hooks/useCan";
+import {Can} from "../components/Can";
 
 export default function Dashboard() {
 	
 	const { usuario } = useContext(AuthContext)
+	
+	const usuarioPodeVerMetricas = useCan({
+		permissoes: ['metrics.list']
+	})
 	
 	useEffect(() => {
 		api.get('/me')
@@ -17,7 +23,15 @@ export default function Dashboard() {
 	})
 	
 	return (
-		<h1>Dashboard { usuario?.email }</h1>
+		<>
+			<h1>Dashboard { usuario?.email }</h1>
+			
+			<button onClick={logout}>Logout</button>
+			
+			<Can permissoes={['metrics.list']}>
+				<h3>Métricas</h3>
+			</Can>
+		</>
 	)
 }
 
